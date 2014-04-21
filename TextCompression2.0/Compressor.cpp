@@ -74,10 +74,10 @@ string Compressor::generateKey()
 
 		fileInput.push(tempWord.getString());
 
-		//if (temp.compare(" ") != 0)
-		//{
+		if (temp.compare(" ") != 0)
+		{
 			fileInput.push(temp);
-		//}
+		}
 
 		temp.clear();
 		tempWord.clear();
@@ -135,11 +135,11 @@ string Compressor::compressFile()
 {
 	cout << "Created key file - " << generateKey() << endl;
 
-	string fileCMP = fileName.substr(0, fileName.length() - 3) + "cmp";
+	fileCMP = fileName.substr(0, fileName.length() - 3) + "cmp";
 	cout << "--CMP OutFile Name - " << fileCMP << "\n";
 	ofstream outFile;
 	bool inserted = false;
-	outFile.open(fileCMP);
+	outFile.open(fileCMP, ios::binary);
 
 	unordered_map<string, char>::iterator temp;
 	string currentWord;
@@ -147,35 +147,7 @@ string Compressor::compressFile()
 	while (!fileInput.empty())
 	{
 		temp = insertionMap.find(fileInput.front());
-
-		while (temp == insertionMap.end() && !fileInput.empty())
-		{
-			currentWord = currentWord + fileInput.front();
-			fileInput.pop();
-			temp = insertionMap.find(fileInput.front());
-
-			inserted = true;
-		}
-
-		if (inserted)
-		{
-			outFile.put(insertionMap.find("<0>")->second);
-			outFile << currentWord;
-			outFile.put(insertionMap.find("<0>")->second);
-			inserted = false;
-		}
-
-		else
-		{
-			outFile.put(temp->second);
-			//cout << "Character inserted -- " << (int)temp->second << endl;
-		}
-		//cout << "Current Word -" << currentWord << endl;
 		
-		currentWord.clear();
-		fileInput.pop();
-
-		/*
 		currentWord = fileInput.front();
 		temp = insertionMap.find(currentWord);
 		if (temp != insertionMap.end())
@@ -191,7 +163,8 @@ string Compressor::compressFile()
 		}
 
 		fileInput.pop();
-		*/
+		currentWord.clear();
+		
 	}
 
 	return fileCMP;
@@ -202,53 +175,97 @@ string Compressor::compressFile(string nameOfFile)
 	return (this->compressFile());
 }
 
-string Compressor::compressFile(string nameOfFile, string keyName)
+string Compressor::decompressFile()
 {
-	fileName = nameOfFile;
+	ifstream cmpFile, keyFile;
+	ofstream outFile;
+	cmpFile.open(fileCMP);
+	keyFile.open(fileKey);
+	if (cmpFile.bad())
+	{
+		cout << "File \"" << fileCMP << "\" is bad or does not exist\n";
+		return "-1";
+	}
+	else if (keyFile.bad())
+	{
+		cout << "File \"" << fileKey << "\" is bad or does not exist\n";
+		return "-1";
+	}
+
+	fileName = "UncompressedFile.txt";
+	outFile.open(fileName);
+	
+	cout << "File with key " << fileKey << " being decompressed\n";
+	generateLookupTable(fileKey);
+	char currentChar = cmpFile.get();
+	string currentWord;
+	unordered_map<char, string>::iterator temp = lookupTable.find(currentChar);
+	while (cmpFile.good())
+	{
+		if (temp->second.compare("<0>") == 0)
+		{
+			currentChar = cmpFile.get();
+			while (!(temp->second.compare("<0>") == 0))
+			{
+				currentWord = currentWord + currentChar;
+				currentChar = cmpFile.get();
+				temp = lookupTable.find(currentChar);
+			}
+
+			outFile << currentWord << ' ';
+		}
+		else
+		{
+			outFile << temp->second << ' ';
+		}
+
+		currentChar = cmpFile.get();
+		temp = lookupTable.find(currentChar);
+
+	}
+
+	return fileName;
+}
+
+string Compressor::decompressFile(string nameOfCMP, string keyName)
+{
+	fileCMP = nameOfCMP;
 	fileKey = keyName;
-	return (this->compressFile());
+	return (this->decompressFile());
 }
 
 string Compressor::getFileName()
 {
-
+	return fileName;
 }
 void Compressor::setFileName(string nameOfFile)
 {
-
+	fileName = nameOfFile;
 }
 
 void Compressor::generateLookupTable(string keyName)
 {
 	fstream infile;
-	infile.open(keyName);
-	char currentChar;
-	string currentWord = "";
+	infile.open(keyName, ios::in | ios::binary);
+	string currentLine;
 
-	if (!(keyName.substr(keyName.find("."), keyName.length())).compare("key") == 0 && infile.good())
-	{
-		cout << "FUNCTION REQUIRES .KEY FILETYPE\n";
-		return;
-	}
-	else if (!infile.good())
+	if (!infile.good())
 	{
 		cout << "FILE DOES NOT EXIST OR DID NOT OPEN CORRECTLY\n";
 		return;
 	}
 
-	currentChar = infile.get();
-	while (currentChar != EOF)
+	while (infile.good())
 	{
-		while (currentChar != '-')
+		
+		infile >> currentLine;
+
+		if (currentLine != "")
 		{
-			currentWord = currentWord + currentChar;
+			lookupTable.emplace(currentLine[currentLine.find("-") + 1], currentLine.substr(0, currentLine.find("-")));
+			cout << "Current Key - " << currentLine[currentLine.find("-") + 1] << endl;
 		}
-
-		lookupTable.emplace(infile.get(), currentWord);
-
-		infile.get();
-		currentChar = infile.get();
-		currentWord.clear();
+		currentLine.clear();
 	}
 }
 

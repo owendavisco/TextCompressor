@@ -22,6 +22,7 @@ int WordBank::getWordCount(string s)
 	{
 		return (wordMap.find(s)->second).getWordCount();
 	}
+	return 0;
 }
 
 void WordBank::setWordCount(string s, int count)

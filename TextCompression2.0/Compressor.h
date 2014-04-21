@@ -17,7 +17,7 @@ using namespace std;
 class Compressor
 {
 private:
-	string fileName, fileKey;
+	string fileName, fileKey, fileCMP;
 	queue<string> fileInput;
 	WordBank stringBank;
 	unordered_map<string, char> insertionMap;
@@ -36,10 +36,8 @@ public:
 
 	string compressFile();
 	string compressFile(string nameOfFile);
-	string compressFile(string nameOfFile, string keyName);
 
 	string decompressFile();
-	string decompressFile(string nameOfFile);
 	string decompressFile(string nameOfFile, string keyName);
 
 	void outputCompressed(string nameOfFile);

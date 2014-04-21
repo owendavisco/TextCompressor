@@ -45,9 +45,11 @@ int main(int argc, const char* argv[])
 		return 0;
 	}
 
-	Compressor compressor = *new Compressor(argv[1]);
+	Compressor compressor = *new Compressor("WealthOfNations.txt");
 
 	compressor.compressFile();
+
+	compressor.decompressFile("WealthOfNations.cmp", "WealthOfNations.key");
 
 	/*
 	    //Create a stream for the file to read given from the first argument
