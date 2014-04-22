@@ -105,11 +105,6 @@ string Compressor::generateKey()
 		outFile.put('-');
 		outFile.put(code);
 
-		if (code == 10)
-		{
-			cout << "Code 10 is - " << currentWord << endl;
-		}
-
 		insertionMap.emplace(currentWord, code);
 	}
 	outFile.close();
@@ -187,15 +182,8 @@ string Compressor::decompressFile()
 	string currentWord;
 	unordered_map<unsigned char, string>::iterator temp = lookupTable.find(currentChar);
 
-	for (auto it = lookupTable.begin(); it != lookupTable.end(); ++it)
-	{
-		std::cout << "Char (int) - " << (int)it->first << ": Word - " << it->second << endl;
-	}
-
-	system("pause");
 	while (cmpFile.good())
 	{
-		cout << "Char at the top is (int) - " << (int)currentChar << endl;
 		if (lookupTable.find(currentChar)->second.compare("<0>") == 0)
 		{
 			currentChar = cmpFile.get();
@@ -204,7 +192,6 @@ string Compressor::decompressFile()
 				currentWord = currentWord + to_string(currentChar);
 				currentChar = cmpFile.get();
 			}
-
 			currentChar = cmpFile.get();
 			currentWord.clear();
 		}
@@ -243,6 +230,7 @@ void Compressor::generateLookupTable(string keyName)
 	infile.open(keyName, ios::in | ios::binary);
 	unsigned char currentChar = infile.get();
 	string currentWord;
+	bool isNewLine = false;
 
 	if (!infile.good())
 	{
@@ -255,11 +243,22 @@ void Compressor::generateLookupTable(string keyName)
 		
 		while (currentChar != '-')
 		{
-			currentWord = currentWord + (char)currentChar;
+			//Make sure not to write any new lines to the word
+			if (currentChar != 13 && currentChar != 10)
+			{
+				currentWord = currentWord + (char)currentChar;
+			}
+			
+			//Get the next character
 			currentChar = infile.get();
 		}
-
 		currentChar = infile.get();
+
+		if (currentChar == 13 && !isNewLine)
+		{
+			currentChar = infile.get();
+			isNewLine = true;
+		}
 		lookupTable.emplace(currentChar, currentWord);
 		cout << "Current word is - " << currentWord << " Current Char is - " << (int)currentChar << endl;
 
