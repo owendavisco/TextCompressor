@@ -78,7 +78,7 @@ string Compressor::generateKey()
 
 	string keyName = fileName.substr(0, fileName.length() - 3) + "key";
 	ofstream outFile;
-	outFile.open(keyName, ios::out);
+	outFile.open(keyName);
 
 	vector<Word> vectorList = stringBank.getSortedVector();
 	unsigned char code = 0;
@@ -126,7 +126,7 @@ string Compressor::compressFile()
 	cout << "--CMP OutFile Name - " << fileCMP << "\n";
 	ofstream outFile;
 	bool inserted = false;
-	outFile.open(fileCMP, ios::in | ios::binary);
+	outFile.open(fileCMP, ios::out | ios::binary);
 
 	unordered_map<string, unsigned char>::iterator temp;
 	string currentWord;
@@ -180,6 +180,7 @@ string Compressor::decompressFile()
 	generateLookupTable(fileKey);
 	unsigned char currentChar = cmpFile.get();
 	string currentWord;
+	bool spaceNeeded = false;
 	unordered_map<unsigned char, string>::iterator temp = lookupTable.find(currentChar);
 
 	while (cmpFile.good())
@@ -192,7 +193,9 @@ string Compressor::decompressFile()
 				currentWord = currentWord + (char)currentChar;
 				currentChar = cmpFile.get();
 			}
+
 			outFile << currentWord << ' ';
+			
 			currentChar = cmpFile.get();
 			currentWord.clear();
 		}
@@ -200,6 +203,7 @@ string Compressor::decompressFile()
 		if (lookupTable.find(currentChar) != lookupTable.end() && lookupTable.find(currentChar)->second.compare("<0>") != 0)
 		{
 			outFile << lookupTable.find(currentChar)->second << ' ';
+			spaceNeeded = true;
 			currentChar = cmpFile.get();
 		}
 	}
