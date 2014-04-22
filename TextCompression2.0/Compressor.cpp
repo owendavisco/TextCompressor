@@ -189,20 +189,18 @@ string Compressor::decompressFile()
 			currentChar = cmpFile.get();
 			while (lookupTable.find(currentChar)->second.compare("<0>") != 0)
 			{
-				currentWord = currentWord + to_string(currentChar);
+				currentWord = currentWord + (char)currentChar;
 				currentChar = cmpFile.get();
 			}
+			outFile << currentWord << ' ';
 			currentChar = cmpFile.get();
 			currentWord.clear();
 		}
 
-		if (lookupTable.find(currentChar) != lookupTable.end())
+		if (lookupTable.find(currentChar) != lookupTable.end() && lookupTable.find(currentChar)->second.compare("<0>") != 0)
 		{
+			outFile << lookupTable.find(currentChar)->second << ' ';
 			currentChar = cmpFile.get();
-		}
-		else
-		{
-			cout << "Something went wrong with char - " << (int)currentChar << endl;
 		}
 	}
 	return fileName;
@@ -260,7 +258,6 @@ void Compressor::generateLookupTable(string keyName)
 			isNewLine = true;
 		}
 		lookupTable.emplace(currentChar, currentWord);
-		cout << "Current word is - " << currentWord << " Current Char is - " << (int)currentChar << endl;
 
 		currentChar = infile.get();
 		currentWord.clear();
