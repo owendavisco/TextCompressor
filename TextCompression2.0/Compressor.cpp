@@ -28,19 +28,10 @@ Compressor::Compressor()
 string Compressor::generateKey()
 {
 	fstream file;
-
-	try
+	file.open(fileName);
+	if (file.bad())
 	{
-		file.open(fileName);
-		if (file.fail())
-		{
-			throw "FILE COULD NOT BE OPENED";
-		}
-	}
-
-	catch (string s)
-	{
-		cout << "ERROR: " << s << "\n";
+		cout << "KEY FILE GENERATION FAILED\n";
 	}
 
 	//Create a bank of words for which the input can be inserted
@@ -87,7 +78,7 @@ string Compressor::generateKey()
 
 	string keyName = fileName.substr(0, fileName.length() - 3) + "key";
 	ofstream outFile;
-	outFile.open(keyName);
+	outFile.open(keyName, ios::out);
 
 	vector<Word> vectorList = stringBank.getSortedVector();
 	unsigned char code = 0;
@@ -110,15 +101,16 @@ string Compressor::generateKey()
 	{
 		currentWord = vectorList.at(i).getString();
 
-		outFile << currentWord << "-" << (char)code;
+		outFile << currentWord;
+		outFile.put('-');
+		outFile.put(code);
+
+		if (code == 10)
+		{
+			cout << "Code 10 is - " << currentWord << endl;
+		}
 
 		insertionMap.emplace(currentWord, code);
-
-        //code 10 and 13 cause a newline character so do not output an endl if they are inserted
-		if (code != 10 && code != 13)
-		{
-			outFile << endl;
-		}
 	}
 	outFile.close();
 
@@ -139,9 +131,9 @@ string Compressor::compressFile()
 	cout << "--CMP OutFile Name - " << fileCMP << "\n";
 	ofstream outFile;
 	bool inserted = false;
-	outFile.open(fileCMP, ios::binary);
+	outFile.open(fileCMP, ios::in | ios::binary);
 
-	unordered_map<string, char>::iterator temp;
+	unordered_map<string, unsigned char>::iterator temp;
 	string currentWord;
 
 	while (!fileInput.empty())
@@ -177,18 +169,12 @@ string Compressor::compressFile(string nameOfFile)
 
 string Compressor::decompressFile()
 {
-	ifstream cmpFile, keyFile;
+	ifstream cmpFile;
 	ofstream outFile;
-	cmpFile.open(fileCMP);
-	keyFile.open(fileKey);
+	cmpFile.open(fileCMP, ios::in | ios::binary);
 	if (cmpFile.bad())
 	{
 		cout << "File \"" << fileCMP << "\" is bad or does not exist\n";
-		return "-1";
-	}
-	else if (keyFile.bad())
-	{
-		cout << "File \"" << fileKey << "\" is bad or does not exist\n";
 		return "-1";
 	}
 
@@ -197,33 +183,41 @@ string Compressor::decompressFile()
 	
 	cout << "File with key " << fileKey << " being decompressed\n";
 	generateLookupTable(fileKey);
-	char currentChar = cmpFile.get();
+	unsigned char currentChar = cmpFile.get();
 	string currentWord;
-	unordered_map<char, string>::iterator temp = lookupTable.find(currentChar);
+	unordered_map<unsigned char, string>::iterator temp = lookupTable.find(currentChar);
+
+	for (auto it = lookupTable.begin(); it != lookupTable.end(); ++it)
+	{
+		std::cout << "Char (int) - " << (int)it->first << ": Word - " << it->second << endl;
+	}
+
+	system("pause");
 	while (cmpFile.good())
 	{
-		if (temp->second.compare("<0>") == 0)
+		cout << "Char at the top is (int) - " << (int)currentChar << endl;
+		if (lookupTable.find(currentChar)->second.compare("<0>") == 0)
 		{
 			currentChar = cmpFile.get();
-			while (!(temp->second.compare("<0>") == 0))
+			while (lookupTable.find(currentChar)->second.compare("<0>") != 0)
 			{
-				currentWord = currentWord + currentChar;
+				currentWord = currentWord + to_string(currentChar);
 				currentChar = cmpFile.get();
-				temp = lookupTable.find(currentChar);
 			}
 
-			outFile << currentWord << ' ';
+			currentChar = cmpFile.get();
+			currentWord.clear();
+		}
+
+		if (lookupTable.find(currentChar) != lookupTable.end())
+		{
+			currentChar = cmpFile.get();
 		}
 		else
 		{
-			outFile << temp->second << ' ';
+			cout << "Something went wrong with char - " << (int)currentChar << endl;
 		}
-
-		currentChar = cmpFile.get();
-		temp = lookupTable.find(currentChar);
-
 	}
-
 	return fileName;
 }
 
@@ -247,7 +241,8 @@ void Compressor::generateLookupTable(string keyName)
 {
 	fstream infile;
 	infile.open(keyName, ios::in | ios::binary);
-	string currentLine;
+	unsigned char currentChar = infile.get();
+	string currentWord;
 
 	if (!infile.good())
 	{
@@ -258,14 +253,18 @@ void Compressor::generateLookupTable(string keyName)
 	while (infile.good())
 	{
 		
-		infile >> currentLine;
-
-		if (currentLine != "")
+		while (currentChar != '-')
 		{
-			lookupTable.emplace(currentLine[currentLine.find("-") + 1], currentLine.substr(0, currentLine.find("-")));
-			cout << "Current Key - " << currentLine[currentLine.find("-") + 1] << endl;
+			currentWord = currentWord + (char)currentChar;
+			currentChar = infile.get();
 		}
-		currentLine.clear();
+
+		currentChar = infile.get();
+		lookupTable.emplace(currentChar, currentWord);
+		cout << "Current word is - " << currentWord << " Current Char is - " << (int)currentChar << endl;
+
+		currentChar = infile.get();
+		currentWord.clear();
 	}
 }
 

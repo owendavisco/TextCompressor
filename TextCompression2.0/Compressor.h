@@ -20,8 +20,8 @@ private:
 	string fileName, fileKey, fileCMP;
 	queue<string> fileInput;
 	WordBank stringBank;
-	unordered_map<string, char> insertionMap;
-	unordered_map<char, string> lookupTable;
+	unordered_map<string, unsigned char> insertionMap;
+	unordered_map<unsigned char, string> lookupTable;
 
 	void generateLookupTable(string keyName);
 	string toUpper(string s);
@@ -29,6 +29,8 @@ public:
 	Compressor(string nameOfFile);
 	Compressor(string nameOfFile, string keyName);
 	Compressor();
+
+	WordBank generateTopWords();
 
 	string generateKey();
 	string generateKey(string fileName);
