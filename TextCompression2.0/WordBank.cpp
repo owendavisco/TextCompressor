@@ -1,3 +1,6 @@
+// Owen Davis
+// WordBank.cpp
+
 #include <iostream>
 #include <unordered_map>
 #include <string>
@@ -5,6 +8,7 @@ using namespace std;
 #include "WordBank.h"
 #include "Word.h"
 
+//Constructor will create a new map, and when given a size instanciate it
 WordBank::WordBank()
 {
 	wordMap = *new unordered_map<string, Word>;
@@ -15,6 +19,7 @@ WordBank::WordBank(int count)
 	size = count;
 }
 
+//getWordCount will traverse the map and then use the "Word" to find the count
 int WordBank::getWordCount(string s)
 {
 	unordered_map<string, Word>::iterator temp = find(s);
@@ -25,6 +30,7 @@ int WordBank::getWordCount(string s)
 	return 0;
 }
 
+//setWordCount will traverse the map and then when the "Word" is found increment the counter
 void WordBank::setWordCount(string s, int count)
 {
 	unordered_map<string, Word>::iterator temp = find(s);
@@ -34,12 +40,14 @@ void WordBank::setWordCount(string s, int count)
 	}
 }
 
+//find will search for a string inside the map and return its iterator
 unordered_map<string, Word>::iterator WordBank::find(string s)
 {
 	unordered_map<string, Word>::iterator element = wordMap.find(s);
 	return element;
 }
 
+//Traverse the map and check if it is found
 bool WordBank::exists(string s)
 {
 	unordered_map<string, Word>::iterator element = (wordMap.find(s));
@@ -53,6 +61,7 @@ bool WordBank::exists(string s)
 	}
 }
 
+/*Insert and remove values from the map*/
 void WordBank::insert(string s)
 {
 	wordMap.emplace(s, *new Word(s));
@@ -67,12 +76,15 @@ void WordBank::remove(string s)
 {
 	wordMap.erase(s);
 }
+/*End insert and remove*/
 
+//Return the map to the caller
 unordered_map<string, Word> WordBank::getMap()
 {
 	return wordMap;
 }
 
+//Convert the map into a vector and return it
 vector<Word> WordBank::getVectorList()
 {
 	vector<Word> list;
@@ -86,6 +98,7 @@ vector<Word> WordBank::getVectorList()
 	return list;
 }
 
+//Convert the map into a vector, sort that vector, and then return that vector
 vector<Word> WordBank::getSortedVector()
 {
 	vector<Word> v =  this->getVectorList();

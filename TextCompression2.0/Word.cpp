@@ -1,3 +1,6 @@
+// Owen Davis
+// Word.cpp
+
 #include <string>
 #include <iostream>
 using namespace std;
@@ -105,7 +108,7 @@ void Word::clear()
 	isUpper = false;
 }
 
-//Getters and setters...
+/*Getters and setters...*/
 string Word::getString()
 {
 	return word;
@@ -148,3 +151,4 @@ void Word::setUpperCase(bool newCase)
 {
 	isUpper = newCase;
 }
+/*End getters and setters*/

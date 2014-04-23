@@ -1,12 +1,12 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <ctype.h>
-#include <fstream>
-#include <queue>
-#include <iomanip>
-#include <algorithm>
-#include <unordered_map>
+// Owen Davis
+// 4-22-2014
+// CS 3060
+//
+// This program will take a file (either .txt or .cmp) and
+// either compress or decompress that file. This program will
+// make us of the Compressor class in order to compress/decompress
+
+#include <time.h> 
 using namespace std;
 
 unsigned t0 = clock();
@@ -14,13 +14,8 @@ unsigned t0 = clock();
 #include "WordBank.h"
 #include "Word.h"
 #include "Compressor.h"
-string toUpper(string upperstring);
-bool checkRedundancy(WordBank & bank, string s);
-void readFile(string);
-void outFile(vector<Word>, string);
-vector<Word> heapSort(vector<Word>);
 
-//unordered_map<string, int, bool, int> heapSort(unordered_map<string, int, bool, int>);
+string toUpper(string upperstring);
 
 int main(int argc, const char* argv[])
 {
@@ -31,145 +26,53 @@ int main(int argc, const char* argv[])
 		return 0;
 	}
 	string fileName = argv[1];
+	ifstream file(fileName, ios::binary | ios::ate);
+	Compressor compressor;
 
-	//And if the user did not input the correct file extension tell them the correct usage
-	if (toUpper(fileName).find(".TXT") == -1 && toUpper(fileName).find(".CMP") == -1)
+	long fileSize = file.tellg();
+
+	//If the file is empty
+	if (fileSize <= 0)
+	{
+		cout << "File - " << fileName << " is empty\n";
+	}
+
+	//If the user has provided a .txt file
+	else if (toUpper(fileName).find(".TXT") != -1)
+	{
+		//Output the uncompressed size
+		cout << "Uncompressed - " << fileName << " " << fileSize << " bytes\n";
+
+		//Compress the file named fileName, and then store that new file name in fileName
+		fileName = compressor.compressFile(fileName);
+
+		//Grab this new file size and output it to the user, and then its compression rate
+		long fileSizeCo = (*new ifstream(fileName, ios::binary | ios::ate)).tellg();
+		cout << "Compressed - " << fileName << " " << fileSizeCo << " bytes\n";
+		cout << "File Compression Rate - " << setprecision(4) << ((1 - ((float)fileSizeCo / fileSize)) * 100) << "%\n";
+	}
+	//If the user has provided a .cmp file
+	else if (toUpper(fileName).find(".CMP") != -1)
+	{
+		//Output the compressed file name and size, and then grab the .key file
+		cout << "Compressed - " << fileName << " " << fileSize << " bytes\n";
+		fileName = compressor.decompressFile(fileName, fileName.substr(0, fileName.find(".")) + ".key");
+
+		//Grab the new decompressed file and output it to the user along with its compression rate
+		long fileSizeDe = (*new ifstream(fileName, ios::binary | ios::ate)).tellg();
+		cout << "Decompressed - " << fileName << " " << fileSizeDe << " bytes\n";
+
+		cout << "File Compression Rate - " << setprecision(4) << ((1 - ((float)fileSize / fileSizeDe)) * 100) << "%\n";
+	}
+	//If the file does not use the correct format, tell the user
+	else
 	{
 		cout << "USAGE: \"filename\".txt or \"filename\".cmp are the only proper formats\n";
-		return 0;
 	}
 
-	if (toUpper(fileName).find(".TXT") == -1)
-	{
-		readFile(fileName);
-		return 0;
-	}
-
-	Compressor compressor = *new Compressor(argv[1]);
-
-	compressor.compressFile();
-	compressor.decompressFile("WealthOfNations.cmp", "WealthOfNations.key");
-
-	//compressor.decompressFile("WealthOfNations.cmp", "WealthOfNations.key");
-
-	/*
-	    //Create a stream for the file to read given from the first argument
-	    fstream file;
-	    file.open(argv[1]);
-
-	    //Create the unordered_map bank of strings for which we will be reading 
-	    WordBank stringBank;
-
-	    queue<string> fileOrder;
-
-	    char currentChar = currentChar = file.get();
-	    float timeCheck = 0;
-	    Word tempWord;
-	    string temp;
-	    while (currentChar != EOF)
-	    {
-		    //currentChar = file.get();
-		    while (toupper(currentChar) >= 'A' && toupper(currentChar) <= 'Z')
-		    {
-			    tempWord = tempWord + toupper(currentChar);
-			    currentChar = file.get();
-		    }
-
-		    if (!stringBank.exists(tempWord.getString()))
-		    {
-			    stringBank.insert(tempWord.getString(), tempWord);
-		    }
-		    else
-		    {
-			    stringBank.setWordCount(tempWord.getString(), stringBank.getWordCount(tempWord.getString()) + 1);
-		    }
-
-		    while (currentChar != EOF && !(toupper(currentChar) >= 'A' && toupper(currentChar) <= 'Z'))
-		    {
-			    temp = temp + currentChar;
-			    currentChar = file.get();
-		    }
-
-		    unsigned t1 = clock();
-		    fileOrder.push(tempWord.getString());
-		    fileOrder.push(temp);
-		    timeCheck = timeCheck + ((float)clock() - t1) / CLOCKS_PER_SEC;
-
-		    temp.clear();
-		    tempWord.clear();
-
-		    
-		    if (toupper(currentChar) >= 'A' && toupper(currentChar) <= 'Z')
-		    {
-			    //Keep reading in letters until the entire string has been constructed
-			    while (toupper(currentChar) >= 'A' && toupper(currentChar) <= 'Z')
-			    {
-				    temp = temp + currentChar;
-				    currentChar = file.get();
-			    }
-			    if (!stringBank.exists(toUpper(temp)))
-			    {
-				    stringBank.insert(toUpper(temp), *new Word(temp));
-			    }
-			    else
-			    {
-				    stringBank.setWordCount(toUpper(temp), stringBank.getWordCount(toUpper(temp)) + 1);
-			    }
-			
-			    temp.clear();
-			    tempWord.clear();
-		    }
-            
-		
-
-	    }
-	    file.close();
-
-	    outFile(heapSort(stringBank.getVectorList()), fileName);
-    */
-	cout << "Execution Time - " << ((float)clock() - t0) / CLOCKS_PER_SEC << endl;
-	//cout << "execution Time From if - " << timeCheck << endl;
+	//Output the execution time, primarily used for testing but can be useful
+	cout << "\nExecution Time - " << ((float)clock() - t0) / CLOCKS_PER_SEC << " seconds" << endl;
 	return 0;
-}
-
-void readFile(string nameOfFile)
-{
-	ifstream inFile;
-	inFile.open(nameOfFile);
-	string temp;
-
-	while (getline(inFile, temp))
-	{
-		cout << temp << "\n";
-	}
-}
-
-void outFile(vector<Word> vectorList, string nameOfFile)
-{
-	nameOfFile = nameOfFile.substr(0, nameOfFile.length() - 3) + "cmp";
-	cout << "\n OutFile Name - " << nameOfFile << "\n";
-	ofstream outFile;
-	outFile.open(nameOfFile);
-
-	outFile << "string/Character       - string count" << "\n\n";
-	outFile << setiosflags(ios::left);
-
-	//Trabankerse the stringBank and output the string information to the user
-	for (unsigned int i = vectorList.size()-1; i > 0; i--)
-	{
-		outFile << setw(20) << vectorList.at(i).getString() << " - " << (vectorList.at(i).getWordCount());
-		outFile << endl;
-	}
-
-	outFile.close();
-}
-
-vector<Word> heapSort(vector<Word> v)
-{
-	make_heap(v.begin(), v.end());
-	sort_heap(v.begin(), v.end());
-
-	return v;
 }
 
 //Basic upperCase conversion to be used in comparisons

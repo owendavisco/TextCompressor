@@ -1,3 +1,6 @@
+// Owen Davis
+// Word.h
+
 #ifndef WORD_H
 #define WORD_H
 
