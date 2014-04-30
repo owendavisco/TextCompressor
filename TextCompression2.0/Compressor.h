@@ -50,11 +50,11 @@ public:
 	string generateKey(string nameOfFile);
 
 	//Functions to compress a file
-	string compressFile();
 	string compressFile(string nameOfFile);
+	string compressFile(string nameOfFile, ios_base::openmode openType);
 
 	//Functions to decompress a file
-	string decompressFile();
+	string decompressFile(string nameOfFile);
 	string decompressFile(string nameOfFile, string keyName);
 
 	/*File name, key and cmp getters and setters*/
